@@ -91,18 +91,18 @@ for ind_arq in range(len(arqs)):
 
         params = lmfit.Parameters()
         #               (Name,  Value,  Vary,   Min,  Max,  Expr)
-        params.add_many(('a1',   1,   True,  0,      None,  None),
-                        ('f1',   1350,   True, 1340,    1360,  None),
-                        ('l1',   80,   True,  0,      None,  None),
-                        ('a2',   1,   True,  0,      None,  None),
-                        ('f2',   1600,  True, 1580,   1620,  None),
-                        ('l2',   80,   True,  0,   None,  None),  
-                        ('a3',   1,    True,    0,      None,  None),
-                        ('f3',   1000,  True, 700,   1500,  None),
-                        ('l3',   80,   True,  0,   None,  None),
-                        ('a4',   8.5,    True,    0,      None,  None),
-                        ('f4',   1100,  True, 1000,   2000,  None),
-                        ('l4',   80,   True,  0,   None,  None))
+        params.add_many(('a1',   2.4,   True,  0,      None,  None),
+                ('f1',   1245,   True, 1100,    1300,  None),
+                ('l1',   26,   True,  0,      None,  None),
+                ('a2',   3.5,   True,  0,      None,  None),
+                ('f2',   1350,  True, 1300,   1400,  None),
+                ('l2',   39,   True,  0,   None,  None),  
+                ('a3',   8.5,    True,    0,      None,  None),
+                ('f3',   1510,  True, 1400,   1600,  None),
+                ('l3',   31,   True,  0,   None,  None),
+                ('a4',   8.5,    True,    0,      None,  None),
+                ('f4',   1605,  True, 1500,   1700,  None),
+                ('l4',   31,   True,  0,   None,  None))
 
         n = len(params)//3
         lf = ['f'+str(i) for i in range(1,n+1)]
@@ -117,7 +117,7 @@ for ind_arq in range(len(arqs)):
         # we release the positions but contrain the FWMH and amplitude of all peaks 
         n = len(params)//3
         lf = ['f'+str(i) for i in range(1,n+1)]
-        for i in lf:
+        for i in lf[1::2]:
             params[i].vary = True
 
         #result2 = lmfit.minimize(residual_l, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with leastsq model from scipy

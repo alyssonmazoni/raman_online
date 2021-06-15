@@ -125,6 +125,8 @@ for ind_arq in range(len(arqs)):
 
         model = lmfit.fit_report(result2.params)
         yout, peaks = residual_g(result2.params,x_fit) # the different peaks
+        r_p = result2.params.valuesdict()
+
         plt.figure()
         plt.plot(x_fit,y_fit,'k-')
         for p in peaks:
@@ -135,7 +137,9 @@ for ind_arq in range(len(arqs)):
         plt.xlabel("Raman shift, cm$^{-1}$", fontsize = 14)
         plt.ylabel("Normalized intensity, a. u.", fontsize = 14)
         plt.title("Fitted peaks",fontsize = 14,fontweight = "bold")
-        plt.savefig('../results/'+file[:-3]+'png')
+        for i in range(n):
+            plt.annotate('{}'.format(r_p['f'+str(i+1)]),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]))
+        plt.savefig('../results_two_peaks/'+file[:-3]+'png')
 
         res = dict(result2.params.valuesdict())
         la = ['a'+str(i) for i in range(1,n+1)]
@@ -162,7 +166,7 @@ l4 = [d['l4'] for d in Data]
 d = {'a1':a1,'a2':a2,'a3':a3,'a4':a4,'f1':f1,'f2':f2,'f3':f3,'f4':f4,'l1':l1,'l2':l2,'l3':l3,'l4':l4,'arquivo':amostras}
 print(d)
 tabela = pd.DataFrame(d)
-tabela.to_csv('../results/picos_ajustados.csv')
+tabela.to_csv('../results_two_peaks/picos_ajustados.csv')
 
 from sklearn.decomposition import PCA
 dd = tabela.iloc[:,:-1].values
@@ -187,4 +191,4 @@ for i in range(pc.shape[0]):
 plt.xlabel(f'PC1 ({100*pcvars[0]:.3f}%)')        
 plt.ylabel(f'PC2 ({100*pcvars[1]:.3f}%)')
 plt.title('PCA')
-plt.savefig('../results/pca_raman.png')
+plt.savefig('../results_all_peaks/pca_raman.png')

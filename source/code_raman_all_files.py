@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import rampy as rp
 import os
 
+two_peaks = False
+results_folder = 'results_all_peaks'
+
 def residual_l(pars, x, data=None, eps=None): #Function definition
     # unpack parameters, extract .value attribute for each parameter
     n = len(pars)//3
@@ -117,7 +120,11 @@ for ind_arq in range(len(arqs)):
         # we release the positions but contrain the FWMH and amplitude of all peaks 
         n = len(params)//3
         lf = ['f'+str(i) for i in range(1,n+1)]
-        for i in lf[1::2]:
+        if two_peaks:
+            freq_free = lf[1::2]
+        else:
+            freq_free = lf
+        for i in freq_free:
             params[i].vary = True
 
         #result2 = lmfit.minimize(residual_l, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with leastsq model from scipy
@@ -138,8 +145,8 @@ for ind_arq in range(len(arqs)):
         plt.ylabel("Normalized intensity, a. u.", fontsize = 14)
         plt.title("Fitted peaks",fontsize = 14,fontweight = "bold")
         for i in range(n):
-            plt.annotate('{}'.format(r_p['f'+str(i+1)]),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]))
-        plt.savefig('../results_two_peaks/'+file[:-3]+'png')
+            plt.annotate('{:.2f}'.format(r_p['f'+str(i+1)]),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]),color='red')
+        plt.savefig('../'+results_folder+'/'+file[:-3]+'png')
 
         res = dict(result2.params.valuesdict())
         la = ['a'+str(i) for i in range(1,n+1)]
@@ -166,7 +173,7 @@ l4 = [d['l4'] for d in Data]
 d = {'a1':a1,'a2':a2,'a3':a3,'a4':a4,'f1':f1,'f2':f2,'f3':f3,'f4':f4,'l1':l1,'l2':l2,'l3':l3,'l4':l4,'arquivo':amostras}
 print(d)
 tabela = pd.DataFrame(d)
-tabela.to_csv('../results_two_peaks/picos_ajustados.csv')
+tabela.to_csv('../'+results_folder+'/picos_ajustados.csv')
 
 from sklearn.decomposition import PCA
 dd = tabela.iloc[:,:-1].values
@@ -191,4 +198,4 @@ for i in range(pc.shape[0]):
 plt.xlabel(f'PC1 ({100*pcvars[0]:.3f}%)')        
 plt.ylabel(f'PC2 ({100*pcvars[1]:.3f}%)')
 plt.title('PCA')
-plt.savefig('../results_all_peaks/pca_raman.png')
+plt.savefig('../'+results_folder+'/pca_raman.png')

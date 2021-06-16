@@ -114,7 +114,7 @@ for ind_arq in range(len(arqs)):
 
         algo = 'cg'  
             
-        result = lmfit.minimize(residual_g, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with  nelder model from scipy
+        result = lmfit.minimize(residual_l, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with  nelder model from scipy
 
 
         # we release the positions but contrain the FWMH and amplitude of all peaks 

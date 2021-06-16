@@ -1,1 +1,1 @@
-web: sh setup.sh && streamlit run raman_online.py
+web: sh setup.sh && streamlit run source/raman_online.py

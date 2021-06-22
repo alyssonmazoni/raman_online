@@ -114,7 +114,7 @@ def process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb):
         Data += [res]
         amostras += [f.name[:-4]]
         
-        x_fitL += [x_ft]
+        x_fitL += [x_fit]
         y_fitL += [y_fit]
         youtL += [yout]
         peaksL += [peaks]

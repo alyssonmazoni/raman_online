@@ -17,7 +17,7 @@ st.title('Raman spectroscopy processing')
 files = st.file_uploader('Files to be processed',accept_multiple_files=True)
 
 @st.cache(suppress_st_warning=True)
-def plot_adjusted_peaks(x_fit,y_fit,peaks,yout,lb,hb):
+def plot_adjusted_peaks(x_fit,y_fit,peaks,yout,r_p,lb,hb):
     # x_fit,y_fit,peaks,yout,lb,hb
     fig = plt.figure()
     plt.plot(x_fit,y_fit,'k-')
@@ -30,7 +30,7 @@ def plot_adjusted_peaks(x_fit,y_fit,peaks,yout,lb,hb):
     plt.ylabel("Normalized intensity, a. u.", fontsize = 14)
     plt.title("Fitted peaks: "+f.name[:-4],fontsize = 14,fontweight = "bold")
     for i in range(n):
-        plt.annotate('D'+str(i+1),color='blue')
+        plt.annotate('D'+str(i+1),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]),color='blue')
         #plt.annotate('{:.2f}'.format(r_p['f'+str(i+1)]),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]),color='red')
 
     st.pyplot(fig) 
@@ -44,6 +44,7 @@ def process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb):
     y_fitL = []
     youtL = []
     peaksL = []
+    r_pL = []
     
     for ind_f,f in enumerate(files):
         R = pd.read_csv(f,header = None, sep = '\t')
@@ -105,23 +106,6 @@ def process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb):
         yout, peaks = resid.residual_g(result2.params,x_fit) # the different peaks
         r_p = result2.params.valuesdict()
 
-        # x_fit,y_fit,peaks,yout,lb,hb
-        fig = plt.figure()
-        plt.plot(x_fit,y_fit,'k-')
-        for p in peaks:
-            plt.plot(x_fit,p,'b-')
-        plt.plot(x_fit,yout,'r-')
-            
-        plt.xlim(lb,hb)
-        plt.xlabel("Raman shift, cm$^{-1}$", fontsize = 14)
-        plt.ylabel("Normalized intensity, a. u.", fontsize = 14)
-        plt.title("Fitted peaks: "+f.name[:-4],fontsize = 14,fontweight = "bold")
-        for i in range(n):
-            plt.annotate('D'+str(i+1),color='blue')
-            #plt.annotate('{:.2f}'.format(r_p['f'+str(i+1)]),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]),color='red')
-
-        st.pyplot(fig) 
-
         res = dict(result2.params.valuesdict())
         la = ['a'+str(i) for i in range(1,n+1)]
         for i in la:
@@ -134,8 +118,9 @@ def process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb):
         y_fitL += [y_fit]
         youtL += [yout]
         peaksL += [peaks]
+        r_pL += [r_p]
         
-    return Data, amostras, x_fitL, y_fitL, youtL, peaksL
+    return Data, amostras, x_fitL, y_fitL, youtL, peaksL, r_pL
 
     
     
@@ -153,10 +138,10 @@ if len(files)>0:
     lb = st.number_input('Lower bound of interest',min_value=0,value=800,key=0) # The lower boundary of interest
     hb = st.number_input('Upper bound of interest',min_value=1000,value=1800,key=1) # The upper boundary of interest
 
-    Data, amostras, x_fitL, y_fitL, youtL, peaksL = process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb)
+    Data, amostras, x_fitL, y_fitL, youtL, peaksL, r_pL = process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb)
 
-    for x_fit,y_fit,peaks,yout in zip(x_fitL, y_fitL, peaksL, youtL):
-        plot_adjusted_peaks(x_fit,y_fit,peaks,yout,lb,hb)
+    for x_fit,y_fit,peaks,yout,r_p in zip(x_fitL, y_fitL, peaksL, youtL,r_pL):
+        plot_adjusted_peaks(x_fit,y_fit,peaks,yout,r_p,lb,hb)
     
     a1 = [d['a1'] for d in Data]
     a2 = [d['a2'] for d in Data]

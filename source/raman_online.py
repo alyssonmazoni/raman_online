@@ -17,7 +17,7 @@ st.title('Raman spectroscopy processing')
 files = st.file_uploader('Files to be processed',accept_multiple_files=True)
 
 @st.cache(suppress_st_warning=True)
-def plot_adjusted_peaks(x_fit,y_fit,peaks,yout,r_p,lb,hb,fname):
+def plot_adjusted_peaks(x_fit,y_fit,peaks,yout,r_p,lb,hb,samp):
     # x_fit,y_fit,peaks,yout,lb,hb
     fig = plt.figure()
     plt.plot(x_fit,y_fit,'k-')
@@ -28,7 +28,7 @@ def plot_adjusted_peaks(x_fit,y_fit,peaks,yout,r_p,lb,hb,fname):
     plt.xlim(lb,hb)
     plt.xlabel("Raman shift, cm$^{-1}$", fontsize = 14)
     plt.ylabel("Normalized intensity, a. u.", fontsize = 14)
-    plt.title("Fitted peaks: "+fname[:-4],fontsize = 14,fontweight = "bold")
+    plt.title("Fitted peaks: "+samp,fontsize = 14,fontweight = "bold")
     for i in range(n):
         plt.annotate('D'+str(i+1),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]),color='blue')
         #plt.annotate('{:.2f}'.format(r_p['f'+str(i+1)]),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]),color='red')
@@ -140,8 +140,8 @@ if len(files)>0:
 
     Data, amostras, x_fitL, y_fitL, youtL, peaksL, r_pL = process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb)
 
-    for x_fit,y_fit,peaks,yout,r_p,fname in zip(x_fitL, y_fitL, peaksL, youtL,r_pL,files):
-        plot_adjusted_peaks(x_fit,y_fit,peaks,yout,r_p,lb,hb,fname)
+    for x_fit,y_fit,peaks,yout,r_p,samp in zip(x_fitL, y_fitL, peaksL, youtL,r_pL,amostras):
+        plot_adjusted_peaks(x_fit,y_fit,peaks,yout,r_p,lb,hb,samp)
     
     a1 = [d['a1'] for d in Data]
     a2 = [d['a2'] for d in Data]

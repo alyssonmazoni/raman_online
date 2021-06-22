@@ -53,18 +53,18 @@ if len(files)>0:
 
         params = lmfit.Parameters()
         #               (Name,  Value,  Vary,   Min,  Max,  Expr)
-        params.add_many(('a1',   240,   True,  100,      None,  None),
+        params.add_many(('a1',   240,   True,  0,      None,  None),
                     ('f1',   1245,   True, 1235,    1255,  None),
-                    ('l1',   26,   True,  10,      None,  None),
-                    ('a2',   350,   True,  100,      None,  None),
+                    ('l1',   26,   True,  0,      None,  None),
+                    ('a2',   350,   True,  0,      None,  None),
                     ('f2',   1350,  True, 1300,   1400,  None),
-                    ('l2',   39,   True,  10,   None,  None),  
-                    ('a3',   850,    True,    100,      None,  None),
+                    ('l2',   39,   True,  0,   None,  None),  
+                    ('a3',   850,    True,    0,      None,  None),
                     ('f3',   1510,  True, 1500,   1520,  None),
-                    ('l3',   31,   True,  10,   None,  None),
-                    ('a4',   140,    True,    100,      None,  None),
+                    ('l3',   31,   True,  0,   None,  None),
+                    ('a4',   140,    True,    0,      None,  None),
                     ('f4',   1605,  True, 1590,   1700,  None),
-                    ('l4',   31,   True,  10,   None,  None))
+                    ('l4',   31,   True,  0,   None,  None))
 
         n = len(params)//3
         lf = ['f'+str(i) for i in range(1,n+1)]

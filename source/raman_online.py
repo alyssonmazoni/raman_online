@@ -63,7 +63,7 @@ if len(files)>0:
                     ('f3',   1510,  True, 1500,   1520,  None),
                     ('l3',   31,   True,  0,   None,  None),
                     ('a4',   14,    True,    0,      None,  None),
-                    ('f4',   1605,  True, 1550,   1700,  None),
+                    ('f4',   1605,  True, 1590,   1700,  None),
                     ('l4',   31,   True,  0,   None,  None))
 
         n = len(params)//3

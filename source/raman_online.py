@@ -16,20 +16,8 @@ st.title('Raman spectroscopy processing')
 
 files = st.file_uploader('Files to be processed',accept_multiple_files=True)
 
-if len(files)>0:
-
-    st.subheader('Baseline calculation')
-    st.subheader('Start region of the baseline')
-    base_start0 = st.number_input('Begining of start region',help='Region at the begining of data whereto estimate baseline.',min_value=0,value = 200,key=-1)
-    base_start1 = st.number_input('Ending of start region',help='Region at the begining of data whereto estimate baseline.',min_value=base_start0,value=800,key=-2)
-    st.subheader('End region of the baseline')
-    base_end0 = st.number_input('Begining of end region of the baseline',help='Region at the end of data whereto estimate baseline.',min_value=base_start1,value=1900,key=-3)
-    base_end1 = st.number_input('Ending of end region of the baseline',help='Region at the end of data whereto estimate baseline.',min_value=base_end0,value=2100,key=-4)
-    st.subheader('Region of interest')
-    # signal selection
-    lb = st.number_input('Lower bound of interest',min_value=0,value=800,key=0) # The lower boundary of interest
-    hb = st.number_input('Upper bound of interest',min_value=1000,value=1800,key=1) # The upper boundary of interest
-
+@st.cache
+def process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb):
     Data = []
     amostras = []
     for ind_f,f in enumerate(files):
@@ -114,6 +102,26 @@ if len(files)>0:
 
         Data += [res]
         amostras += [f.name[:-4]]
+        
+     return Data,amostras
+
+    
+    
+if len(files)>0:
+
+    st.subheader('Baseline calculation')
+    st.subheader('Start region of the baseline')
+    base_start0 = st.number_input('Begining of start region',help='Region at the begining of data whereto estimate baseline.',min_value=0,value = 200,key=-1)
+    base_start1 = st.number_input('Ending of start region',help='Region at the begining of data whereto estimate baseline.',min_value=base_start0,value=800,key=-2)
+    st.subheader('End region of the baseline')
+    base_end0 = st.number_input('Begining of end region of the baseline',help='Region at the end of data whereto estimate baseline.',min_value=base_start1,value=1900,key=-3)
+    base_end1 = st.number_input('Ending of end region of the baseline',help='Region at the end of data whereto estimate baseline.',min_value=base_end0,value=2100,key=-4)
+    st.subheader('Region of interest')
+    # signal selection
+    lb = st.number_input('Lower bound of interest',min_value=0,value=800,key=0) # The lower boundary of interest
+    hb = st.number_input('Upper bound of interest',min_value=1000,value=1800,key=1) # The upper boundary of interest
+
+    Data,amostras = process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb)
 
     a1 = [d['a1'] for d in Data]
     a2 = [d['a2'] for d in Data]

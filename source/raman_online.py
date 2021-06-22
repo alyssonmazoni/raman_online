@@ -71,7 +71,7 @@ if len(files)>0:
         for i in lf:
             params[i].vary = False
 
-        algo = 'cg'  
+        algo = 'nelder-mead'  
         result = lmfit.minimize(resid.residual_l, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with  nelder model from scipy
 
 

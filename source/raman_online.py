@@ -17,7 +17,7 @@ st.title('Raman spectroscopy processing')
 files = st.file_uploader('Files to be processed',accept_multiple_files=True)
 
 @st.cache(suppress_st_warning=True)
-def plot_adjusted_peaks(x_fit,y_fit,peaks,yout,lb,hb)
+def plot_adjusted_peaks(x_fit,y_fit,peaks,yout,lb,hb):
     # x_fit,y_fit,peaks,yout,lb,hb
     fig = plt.figure()
     plt.plot(x_fit,y_fit,'k-')

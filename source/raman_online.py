@@ -16,7 +16,7 @@ st.title('Raman spectroscopy processing')
 
 files = st.file_uploader('Files to be processed',accept_multiple_files=True)
 
-@st.cache
+@st.cache(suppress_st_warning=True)
 def process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb):
     Data = []
     amostras = []

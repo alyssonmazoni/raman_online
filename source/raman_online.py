@@ -72,7 +72,7 @@ if len(files)>0:
             params[i].vary = False
 
         algo = 'nelder-mead'  
-        result = lmfit.minimize(resid.residual_l, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with  nelder model from scipy
+        result = lmfit.minimize(resid.residual_g, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with  nelder model from scipy
 
 
         # we release the positions but contrain the FWMH and amplitude of all peaks 
@@ -85,10 +85,10 @@ if len(files)>0:
         for i in freq_free:
             params[i].vary = True
 
-        result2 = lmfit.minimize(resid.residual_l, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with leastsq model from scipy
+        result2 = lmfit.minimize(resid.residual_g, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with leastsq model from scipy
 
         model = lmfit.fit_report(result2.params)
-        yout, peaks = resid.residual_l(result2.params,x_fit) # the different peaks
+        yout, peaks = resid.residual_g(result2.params,x_fit) # the different peaks
         r_p = result2.params.valuesdict()
 
         fig = plt.figure()
@@ -104,7 +104,7 @@ if len(files)>0:
         for i in range(n):
             plt.annotate('{:.2f}'.format(r_p['f'+str(i+1)]),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]),color='red')
 
-        st.pyplot(fig)
+        st.pyplot(fig) 
 
         res = dict(result2.params.valuesdict())
         la = ['a'+str(i) for i in range(1,n+1)]

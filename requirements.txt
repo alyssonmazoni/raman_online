@@ -1,8 +1,0 @@
-streamlit
-numpy
-pandas
-openpyxl
-matplotlib
-sklearn
-lmfit
-rampy

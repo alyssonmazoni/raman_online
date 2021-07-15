@@ -1,9 +1,11 @@
+from re import S
 import streamlit as st
 import pandas as pd
 import numpy as np
 import rampy as rp
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 import lmfit
 from lmfit.models import GaussianModel
@@ -16,22 +18,36 @@ st.title('Raman spectroscopy processing')
 
 files = st.file_uploader('Files to be processed',accept_multiple_files=True)
 
-if len(files)>0:
+@st.cache(suppress_st_warning=True)
+def plot_adjusted_peaks(x_fit,y_fit,peaks,yout,r_p,lb,hb,samp,n):
+    # x_fit,y_fit,peaks,yout,lb,hb
+    fig = plt.figure()
+    plt.plot(x_fit,y_fit,'k-')
+    for p in peaks:
+        plt.plot(x_fit,p,'b-')
+    plt.plot(x_fit,yout,'r-')
+            
+    plt.xlim(lb,hb)
+    plt.xlabel("Raman shift, cm$^{-1}$", fontsize = 14)
+    plt.ylabel("Normalized intensity, a. u.", fontsize = 14)
+    plt.title("Fitted peaks: "+samp,fontsize = 14,fontweight = "bold")
+    for i in range(n):
+        plt.annotate('D'+str(i+1),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]),color='blue')
+        #plt.annotate('{:.2f}'.format(r_p['f'+str(i+1)]),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]),color='red')
 
-    st.subheader('Baseline calculation')
-    st.subheader('Start region of the baseline')
-    base_start0 = st.number_input('Begining of start region',help='Region at the begining of data whereto estimate baseline.',min_value=0,value = 200,key=-1)
-    base_start1 = st.number_input('Ending of start region',help='Region at the begining of data whereto estimate baseline.',min_value=base_start0,value=800,key=-2)
-    st.subheader('End region of the baseline')
-    base_end0 = st.number_input('Begining of end region of the baseline',help='Region at the end of data whereto estimate baseline.',min_value=base_start1,value=1900,key=-3)
-    base_end1 = st.number_input('Ending of end region of the baseline',help='Region at the end of data whereto estimate baseline.',min_value=base_end0,value=2100,key=-4)
-    st.subheader('Region of interest')
-    # signal selection
-    lb = st.number_input('Lower bound of interest',min_value=0,value=800,key=0) # The lower boundary of interest
-    hb = st.number_input('Upper bound of interest',min_value=1000,value=1800,key=1) # The upper boundary of interest
+    st.pyplot(fig) 
 
+@st.cache(suppress_st_warning=True)
+def process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb):
     Data = []
     amostras = []
+    # x_fit,y_fit,peaks,yout
+    x_fitL = []
+    y_fitL = []
+    youtL = []
+    peaksL = []
+    r_pL = []
+    
     for ind_f,f in enumerate(files):
         R = pd.read_csv(f,header = None, sep = '\t')
         R = R.values
@@ -54,25 +70,26 @@ if len(files)>0:
         params = lmfit.Parameters()
         #               (Name,  Value,  Vary,   Min,  Max,  Expr)
         params.add_many(('a1',   2.4,   True,  0,      None,  None),
-                    ('f1',   1245,   True, 1100,    1300,  None),
-                    ('l1',   26,   True,  0,      None,  None),
-                    ('a2',   3.5,   True,  0,      None,  None),
-                    ('f2',   1350,  True, 1300,   1400,  None),
-                    ('l2',   39,   True,  0,   None,  None),  
-                    ('a3',   8.5,    True,    0,      None,  None),
-                    ('f3',   1510,  True, 1400,   1600,  None),
-                    ('l3',   31,   True,  0,   None,  None),
-                    ('a4',   8.5,    True,    0,      None,  None),
-                    ('f4',   1605,  True, 1500,   1700,  None),
-                    ('l4',   31,   True,  0,   None,  None))
-
+                ('f1',   1245,   True, 1100,    1300,  None),
+                ('l1',   26,   True,  0,      None,  None),
+                ('a2',   3.5,   True,  0,      None,  None),
+                ('f2',   1350,  True, 1300,   1400,  None),
+                ('l2',   39,   True,  0,   None,  None),  
+                ('a3',   8.5,    True,    0,      None,  None),
+                ('f3',   1510,  True, 1400,   1550,  None),
+                ('l3',   31,   True,  0,   None,  None),
+                ('a4',   8.5,    True,    0,      None,  None),
+                ('f4',   1605,  True, 1600,   1700,  None),
+                ('l4',   31,   True,  0,   None,  None))
+        
+        
         n = len(params)//3
         lf = ['f'+str(i) for i in range(1,n+1)]
         for i in lf:
             params[i].vary = False
 
         algo = 'cg'  
-        result = lmfit.minimize(resid.residual_l, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with  nelder model from scipy
+        result = lmfit.minimize(resid.residual_g, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with  nelder model from scipy
 
 
         # we release the positions but contrain the FWMH and amplitude of all peaks 
@@ -85,26 +102,11 @@ if len(files)>0:
         for i in freq_free:
             params[i].vary = True
 
-        result2 = lmfit.minimize(resid.residual_l, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with leastsq model from scipy
+        result2 = lmfit.minimize(resid.residual_g, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with leastsq model from scipy
 
         model = lmfit.fit_report(result2.params)
-        yout, peaks = resid.residual_l(result2.params,x_fit) # the different peaks
+        yout, peaks = resid.residual_g(result2.params,x_fit) # the different peaks
         r_p = result2.params.valuesdict()
-
-        fig = plt.figure()
-        plt.plot(x_fit,y_fit,'k-')
-        for p in peaks:
-            plt.plot(x_fit,p,'b-')
-        plt.plot(x_fit,yout,'r-')
-            
-        plt.xlim(lb,hb)
-        plt.xlabel("Raman shift, cm$^{-1}$", fontsize = 14)
-        plt.ylabel("Normalized intensity, a. u.", fontsize = 14)
-        plt.title("Fitted peaks: "+f.name[:-4],fontsize = 14,fontweight = "bold")
-        for i in range(n):
-            plt.annotate('{:.2f}'.format(r_p['f'+str(i+1)]),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]),color='red')
-
-        st.pyplot(fig)
 
         res = dict(result2.params.valuesdict())
         la = ['a'+str(i) for i in range(1,n+1)]
@@ -113,7 +115,36 @@ if len(files)>0:
 
         Data += [res]
         amostras += [f.name[:-4]]
+        
+        x_fitL += [x_fit]
+        y_fitL += [y_fit]
+        youtL += [yout]
+        peaksL += [peaks]
+        r_pL += [r_p]
+        
+    return Data, amostras, x_fitL, y_fitL, youtL, peaksL, r_pL, n
 
+    
+    
+if len(files)>0:
+
+    st.subheader('Baseline calculation')
+    st.subheader('Start region of the baseline')
+    base_start0 = st.number_input('Begining of start region',help='Region at the begining of data whereto estimate baseline.',min_value=0,value = 200,key=-1)
+    base_start1 = st.number_input('Ending of start region',help='Region at the begining of data whereto estimate baseline.',min_value=base_start0,value=800,key=-2)
+    st.subheader('End region of the baseline')
+    base_end0 = st.number_input('Begining of end region of the baseline',help='Region at the end of data whereto estimate baseline.',min_value=base_start1,value=1900,key=-3)
+    base_end1 = st.number_input('Ending of end region of the baseline',help='Region at the end of data whereto estimate baseline.',min_value=base_end0,value=2100,key=-4)
+    st.subheader('Region of interest')
+    # signal selection
+    lb = st.number_input('Lower bound of interest',min_value=0,value=800,key=0) # The lower boundary of interest
+    hb = st.number_input('Upper bound of interest',min_value=1000,value=1800,key=1) # The upper boundary of interest
+
+    Data, amostras, x_fitL, y_fitL, youtL, peaksL, r_pL, n = process_files(files,base_start0,base_start1,base_end0,base_end1,lb,hb)
+
+    for x_fit,y_fit,peaks,yout,r_p,samp in zip(x_fitL, y_fitL, peaksL, youtL,r_pL,amostras):
+        plot_adjusted_peaks(x_fit,y_fit,peaks,yout,r_p,lb,hb,samp,n)
+    
     a1 = [d['a1'] for d in Data]
     a2 = [d['a2'] for d in Data]
     a3 = [d['a3'] for d in Data]
@@ -136,7 +167,7 @@ if len(files)>0:
 
     st.subheader('PCA')
     dd = tabela.iloc[:,:-1].values
-    X = dd
+    X = StandardScaler().fit_transform(dd)
     pca = PCA(n_components = 2)
     pc = pca.fit_transform(X)
     pcvars = pca.explained_variance_ratio_[:2]

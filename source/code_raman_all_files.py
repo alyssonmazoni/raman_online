@@ -4,8 +4,11 @@ import matplotlib.pyplot as plt
 import rampy as rp
 import os
 
-two_peaks = False
-results_folder = 'results_all_peaks'
+two_peaks = True
+if two_peaks:
+    results_folder = 'results_two_peaks'
+else:
+    results_folder = 'results_all_peaks'
 
 def residual_l(pars, x, data=None, eps=None): #Function definition
     # unpack parameters, extract .value attribute for each parameter
@@ -70,7 +73,7 @@ for ind_arq in range(len(arqs)):
         R = pd.read_csv('../raman_dados/'+file,header = None, sep = '\t')
         R = R.values
 
-        roi = np.array([[260,800],[1900,2100]])
+        roi = np.array([[20,800],[1900,2100]])
         x, y = R[:,0], R[:,1]
 
         # calculating the baselines
@@ -95,13 +98,13 @@ for ind_arq in range(len(arqs)):
         params = lmfit.Parameters()
         #               (Name,  Value,  Vary,   Min,  Max,  Expr)
         params.add_many(('a1',   2.4,   True,  0,      None,  None),
-                ('f1',   1245,   True, 1100,    1300,  None),
+                ('f1',   1245,   True, 1235,    1255,  None),
                 ('l1',   26,   True,  0,      None,  None),
                 ('a2',   3.5,   True,  0,      None,  None),
                 ('f2',   1350,  True, 1300,   1400,  None),
                 ('l2',   39,   True,  0,   None,  None),  
                 ('a3',   8.5,    True,    0,      None,  None),
-                ('f3',   1510,  True, 1400,   1600,  None),
+                ('f3',   1510,  True, 1500,   1520,  None),
                 ('l3',   31,   True,  0,   None,  None),
                 ('a4',   8.5,    True,    0,      None,  None),
                 ('f4',   1605,  True, 1500,   1700,  None),
@@ -114,7 +117,7 @@ for ind_arq in range(len(arqs)):
 
         algo = 'cg'  
             
-        result = lmfit.minimize(residual_l, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with  nelder model from scipy
+        result = lmfit.minimize(residual_g, params, method = algo, args=(x_fit, y_fit[:,0])) # fit data with  nelder model from scipy
 
 
         # we release the positions but contrain the FWMH and amplitude of all peaks 
@@ -143,7 +146,7 @@ for ind_arq in range(len(arqs)):
         plt.xlim(lb,hb)
         plt.xlabel("Raman shift, cm$^{-1}$", fontsize = 14)
         plt.ylabel("Normalized intensity, a. u.", fontsize = 14)
-        plt.title("Fitted peaks",fontsize = 14,fontweight = "bold")
+        plt.title("Fitted peaks" + arqs[ind_arq][:-4],fontsize = 14,fontweight = "bold")
         for i in range(n):
             plt.annotate('{:.2f}'.format(r_p['f'+str(i+1)]),(r_p['f'+str(i+1)],r_p['a'+str(i+1)]),color='red')
         plt.savefig('../'+results_folder+'/'+file[:-3]+'png')
@@ -176,13 +179,23 @@ tabela = pd.DataFrame(d)
 tabela.to_csv('../'+results_folder+'/picos_ajustados.csv')
 
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
 dd = tabela.iloc[:,:-1].values
-X = dd
+X = StandardScaler().fit_transform(dd)
 pca = PCA(n_components = 2)
 pc = pca.fit_transform(X)
 pcvars = pca.explained_variance_ratio_[:2]
 fig = plt.figure() 
-plt.plot(pc[:,0],pc[:,1],'o')
+#plt.plot(pc[:,0],pc[:,1],'o')
+
+labels_exp = pd.read_excel('../raman_dados/Tabela_Raman.xlsx')
+spp = labels_exp['Conteúdo analisado']
+lab = labels_exp['Rótulo']
+
+for i in range(len(spp[1])):
+    plt.plot(pc[spp[0]==i,0],pc[spp[0]==i,1],'o',label=spp[1][i])
+
 for i in range(pc.shape[0]):
     
     x = pc[i,0]
@@ -194,7 +207,9 @@ for i in range(pc.shape[0]):
                     (x,y), # this is the point to label
                     textcoords="offset points", # how to position the text
                     xytext=(0,3), # distance from text to points (x,y)
-                    ha='center') # horizontal alignment can be left, right or center        plt.xlabel(f'PC1 ({pcvars[0]:.3f}%)')
+                    ha='center') # horizontal alignment can be left, right or center
+
+plt.legend()
 plt.xlabel(f'PC1 ({100*pcvars[0]:.3f}%)')        
 plt.ylabel(f'PC2 ({100*pcvars[1]:.3f}%)')
 plt.title('PCA')

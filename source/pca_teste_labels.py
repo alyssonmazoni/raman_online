@@ -18,7 +18,9 @@ pca = PCA(n_components = 2)
 pc = pca.fit_transform(X)
 pcvars = pca.explained_variance_ratio_[:2]
 fig = plt.figure() 
+
 plt.plot(pc[:,0],pc[:,1],'o')
+
 for i in range(pc.shape[0]):
     
     x = pc[i,0]
